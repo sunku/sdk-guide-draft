@@ -1,5 +1,4 @@
 ## Contents
-- [Introduction](#introduction)
 - [Basic Integration](#basic-integration)
     - [Installation](#installation)
     - [Start Session](#start-session)
