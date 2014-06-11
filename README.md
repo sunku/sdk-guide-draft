@@ -7,12 +7,12 @@
     - [Test Device Registration](#test-device-registration)
 - [IAP & Reward](#iap--reward)
   - [In-App Purchase Tracking (Beta)](#in-app-purchase-tracking-beta)
-  - [In-App-Purchase Count](#in-app-purchase-count)
   - [Give Reward](#give-reward)
 - [Dynamic Targeting](#dynamic-targeting)
   - [Custom Parameter](#custom-parameter)
   - [Marketing Moment](#marketing-moment)
 - [Advanced](#advanced)
+  - [In-App-Purchase Count](#in-app-purchase-count)
   - [AdFrescaViewDelegate](#adfrescaviewdelegate) 
   - [Timeout Interval](#timeout-interval) 
 - [Reference](#reference)
@@ -273,32 +273,6 @@ If you can't see any data in our dashboard, your AFPurchase object may be invali
 
 * * *
 
-### In-App Purchase Count
-
-With In-App Purchase Count feature, you can set user's total number of in-app purchases with actual currency to use dynamic targeting features.  
-
-You will set 'numberOfInAppPurchases' property after your app is launched, and also set the property after user purchased the item. You may get the number value from your server.
-
-```java
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions 
-{
-  ......
-  AdFrescaView *fresca = [AdFrescaView sharedAdView];  
-  fresca.numberOfInAppPurchases = user.numberOfInAppPurchases; 
-  ......
-}
-
-- (void)userDidPurchase:(int)numberOfInAppPurchases 
-{
-  currentUser.numberOfInAppPurchases = numberOfInAppPurchases;
-
-  AdFrescaView *fresca = [AdFrescaView sharedAdView];   
-  fresca.numberOfInAppPurchases = user.numberOfInAppPurchases; 
-}  
-```
-
-* * *
-
 ### Give Reward
 
 When you set 'Reward Item' section of the announcement campaign or 'Inventive item' section of the incentivized CPI & CPA campaign, you should implement this 'reward item' code to give an reward item to your users.
@@ -413,6 +387,30 @@ You will call the method after the moment has happened in the app.
 ```
 
 ## Advanced
+
+### In-App Purchase Count
+
+With In-App Purchase Count feature, you can set user's total number of in-app purchases with actual currency to use dynamic targeting features.  
+
+You will set 'numberOfInAppPurchases' property after your app is launched, and also set the property after user purchased the item. You may get the number value from your server.
+
+```java
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions 
+{
+  ......
+  AdFrescaView *fresca = [AdFrescaView sharedAdView];  
+  fresca.numberOfInAppPurchases = user.numberOfInAppPurchases; 
+  ......
+}
+
+- (void)userDidPurchase:(int)numberOfInAppPurchases 
+{
+  currentUser.numberOfInAppPurchases = numberOfInAppPurchases;
+
+  AdFrescaView *fresca = [AdFrescaView sharedAdView];   
+  fresca.numberOfInAppPurchases = user.numberOfInAppPurchases; 
+}  
+```
 
 ### AdFrescaViewDelegate
 
