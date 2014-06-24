@@ -205,7 +205,7 @@ protected void onMessage(Context context, Intent intent) {
 
 AD fresca supports a test mode feature. With the test mode feature, you can deliver your test message to only registred test devices. 
 
-To register your test device to our dashboard, you need to know your test device ID from our SDK. SDK provodies two ways to show test device ID.
+To register your test device to our dashboard, you need to know your test device ID from our SDK. SDK provides two ways to show test device ID.
  
 1. Using getTestDeviceId() method
   - After connecting your device with ADB, you can simply print out test device ID with a logger.
@@ -290,7 +290,7 @@ IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelpe
 };
 ```
 
-The above example is written for Google Play. You can also get the required values form other billing libarary such as Amazon.
+The above example is written for Google Play. You can also get the required values form other billing library such as Amazon.
 
 For more details of AFPurchase object with the actual item, check the table below.
 
