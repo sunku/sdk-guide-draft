@@ -321,7 +321,6 @@ AD fresca supports a test mode feature. With the test mode feature, you can deli
 To register your test device to our dashboard, you need to know your test device ID from our SDK. SDK provides two ways to show test device ID.
  
 1. Using PrintTestDeviceIdByLog() method
-
 ```cs
 AdFresca.Plugin plugin = AdFresca.Plugin.Instance
 plugin.Init(API_KEY);
@@ -334,9 +333,7 @@ if(Application.platform == RuntimePlatform.Android) {
   Debug.Log("testDeviceId = " + testDeviceId);
 }
 ```
-
 2. Displaying test device ID on your app screen using SetPrintTestDeviceId(bool) method.
- 
 ```cs
 AdFresca.Plugin plugin = AdFresca.Plugin.Instance
 plugin.Init(API_KEY);
