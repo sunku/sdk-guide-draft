@@ -202,7 +202,7 @@ Before you start, you need to have your GCM project number from Google API Conso
 ```
 
 - If you already have your own GCMReceiver and GCMIntentService classes, you only need to put some SDK codes in your own GCMIntentService class.
-- If you haven't implemented any GCM classes yet, you will need to write your own GCM classes in java code. Please use our 'Android Plugin Project' in our unity plugin folder. After imporitng the sample project in Eclipse ADT, you will need to rename packages in **/src** and **/gen** to your own package name. Also make sure you need to rename 'com.MyCompany.ProductName' in AndroidManifest.xml
+- If you haven't implemented any GCM classes yet, you will need to write your own GCM classes in java code. Please use our 'Android Plugin Project' in our unity plugin folder. After imporitng the sample project in Eclipse ADT, you will need to rename packages in **/src** and **/gen** to your own package name. Also make sure you need to rename 'YOUR.PACKAGE.NAME' in AndroidManifest.xml above.
 
 2) Implement CustomGCMIntentService
 
@@ -599,8 +599,6 @@ Marketing Moment means the moment you want to engage with your users. For exampl
 To implement codes, simply call **Load(index)** method with passing marketing moment's index. You can get the marketing moment's index in our [Dashboard](https://admin.adfresca.com): 1) Select a App 2) In 'Overview' menu, click 'Settings - Marketing Moment' button. 
 
 You will call the method after the moment has happened in the app.
-
-**Example**:  사용자가 메인 페이지로 이동할 시에 설정한 컨텐츠를 노출
 
 ```cs
   void OnUserDidEnterItemStore() 
