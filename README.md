@@ -37,46 +37,50 @@ Download SDK on the following link:
 
 [Android SDK with IAP Tracking Beta Download](http://file.adfresca.com/distribution/sdk-for-Android-iap-beta.zip) (v.2.4.0-beta4)
 
-Copy **AdFresca.jar** and **adfresca_attr.xml** to **lib** and **res/values** repectively.
+To add SDK into your android project, please follow the instructions below:
 
-<img src="https://adfresca.zendesk.com/attachments/token/bja88u9zake4knm/?name=add_adfresca_jar_and_attr_xml.png" width="300"/>
+1) Copy **AdFresca.jar** and **adfresca_attr.xml** to **lib** and **res/values** repectively.
 
-- Right-click on your project and click **Properties**.
-- Select **Java Build Path** and **Libraries** tab.
-- Click **Add JARs** and select **lib/AdFresca.jar**.
+  <img src="https://adfresca.zendesk.com/attachments/token/bja88u9zake4knm/?name=add_adfresca_jar_and_attr_xml.png" width="300"/>
 
-<img src="https://adfresca.zendesk.com/attachments/token/ogcnzf3kmyzbcvg/?name=add_jar.png" width="600" />
+2) Update build path of your project.
 
-Lastly, modify **AndroidManifest.xml** as follows
+  - Right-click on your project and click **Properties**.
+  - Select **Java Build Path** and **Libraries** tab.
+  - Click **Add JARs** and select **lib/AdFresca.jar**.
 
-```xml
-<manifest package="your.app.package">
-  <application>
-    <activity/>
+  <img src="https://adfresca.zendesk.com/attachments/token/ogcnzf3kmyzbcvg/?name=add_jar.png" width="600" />
+
+3) Modify **AndroidManifest.xml**
+
+  ```xml
+  <manifest package="your.app.package">
+    <application>
+      <activity/>
+      
+      <!-- Service for OpenUDID -->
+      <service android:name="org.openudid.OpenUDID_service">
+        <intent-filter>
+          <action android:name="org.openudid.GETUDID" />
+        </intent-filter>
+      </service>
+
+      <!-- Activity for Cross Promotion -->
+      <activity android:name="com.adfresca.sdk.reward.AFRewardActivity" />
+     
+      <!-- Boradcast Receiver for Google Referrer Tracking-->
+      <receiver android:name="com.adfresca.sdk.referer.AFRefererReciever" android:exported="true">
+        <intent-filter>
+          <action android:name="com.android.vending.INSTALL_REFERRER" />
+        </intent-filter>
+      </receiver>
+    </application>
     
-    <!-- Service for OpenUDID -->
-    <service android:name="org.openudid.OpenUDID_service">
-      <intent-filter>
-        <action android:name="org.openudid.GETUDID" />
-      </intent-filter>
-    </service>
-
-    <!-- Activity for Cross Promotion -->
-    <activity android:name="com.adfresca.sdk.reward.AFRewardActivity" />
-   
-    <!-- Boradcast Receiver for Google Referrer Tracking-->
-    <receiver android:name="com.adfresca.sdk.referer.AFRefererReciever" android:exported="true">
-      <intent-filter>
-        <action android:name="com.android.vending.INSTALL_REFERRER" />
-      </intent-filter>
-    </receiver>
-  </application>
-  
-  <!-- Permissions -->
-  <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-</manifest>
-```
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  </manifest>
+  ```
 
 ### Start Session
 
