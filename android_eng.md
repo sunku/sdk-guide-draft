@@ -20,7 +20,7 @@
   - [Cross Promotion Configuration](#cross-promotion-configuration)
   - [Google Referrer Tracking](#google-referrer-tracking)
   - [Proguard Configuration](#proguard-configuration)
-- [Trouble Shooting](#trouble-shooting)
+- [Troubleshooting](#troubleshooting)
 - [Release Notes](#release-notes)
 
 * * *
@@ -63,7 +63,7 @@ To add SDK into your android project, please follow the instructions below:
         </intent-filter>
       </service>
 
-      <!-- Activity for Cross Promotion -->
+      <!-- Activity for Reward -->
       <activity android:name="com.adfresca.sdk.reward.AFRewardActivity" />
      
       <!-- Boradcast Receiver for Google Referrer Tracking-->
@@ -431,7 +431,7 @@ In some cases, you may not able to set some custom parameters before startSessio
 
 Marketing Moment means the moment you want to engage with your users. For example, you may need to deliver the message when the user completes a quest or enters an item store. You will be able to use it with the [custom parameters](#custom-parameter) so you can deliver the personalized and targeted message in specific moment in real time.
 
-To implement codes, simply call load method with passing marketing moment's index. You can get the marketing moment's index in our [Dashboard](https://admin.adfresca.com): 1) Select a App 2) In 'Overview' menu, click 'Settings - Marketing Moment' button. 
+To implement codes, simply call **load(index)** method with passing marketing moment's index. You can get the marketing moment's index in our [Dashboard](https://admin.adfresca.com): 1) Select a App 2) In 'Overview' menu, click 'Settings - Marketing Moment' button. 
 
 You will call the method after the moment has happened in the app.
 
@@ -870,7 +870,7 @@ If you use Proguard to protect your APK, you should add exception configurations
 -keepattributes Signature 
 ```
 
-## Trouble Shooting
+## Troubleshooting
 
 if our SDK can't show any message or raise errors, you can debug by implementing AFExceptionListener.
 
