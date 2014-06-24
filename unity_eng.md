@@ -64,7 +64,7 @@ Now, we start some installation works for each platform
 
 For Android, we have already done with most of installation from package file. You just need to modify AndroidManifest.xml as below
 
-##### AndroidManifest.xml 적용하기
+##### Modify AndroidManifest.xml
 
 ```xml
 <manifest package="your.app.package">
@@ -168,7 +168,7 @@ You can also deliver your push messages anytime you want. Follow the steps below
 
 Before you start, you need to have your GCM project number from Google API Console, and set GCM API Key value to our [Dashboard](https://admin.adfresca.com). Please refer to '[Android Push Notification Guide](https://adfresca.zendesk.com/entries/28526764)'
 
-1) AndroidManifest.xml 내용 추가하기
+1) Add some codes to AndroidManifest.xml
 
 ```xml
 <manifest>   
@@ -296,23 +296,23 @@ void Start ()
 ```mm
 #import <AdFresca/AdFrescaView.h>
 
-  - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    ...
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge |UIRemoteNotificationTypeSound];   
-  } 
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  ...
+  [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge |UIRemoteNotificationTypeSound];   
+} 
 
-  - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-    [AdFrescaView registerDeviceToken:deviceToken];
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  [AdFrescaView registerDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
+  if ([AdFrescaView isFrescaNotification:userInfo] && [application applicationState] != UIApplicationStateActive) {
+    [AdFrescaView handlePushNotification:userInfo];
   }
-  
-  - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    if ([AdFrescaView isFrescaNotification:userInfo] && [application applicationState] != UIApplicationStateActive) {
-      [AdFrescaView handlePushNotification:userInfo];
-    }
-  } 
+} 
 ```
 
-So, we are now done with Push Messaging implementation!
+So, we are now done with the push messaging implementation!
 
 ### Test Device Registration
 

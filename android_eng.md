@@ -120,7 +120,6 @@ You can also deliver your push messages anytime you want. Follow the steps below
 
 Before you start, you need to have your GCM project number from Google API Console, and set GCM API Key value to our [Dashboard](https://admin.adfresca.com). Please refer to '[Android Push Notification Guide](https://adfresca.zendesk.com/entries/28526764)'
 
-
 1) Check your GCM library installation
   - To use GCM service, your should have GCM client library in your project.
   - If you don't have GCM client library yet, get [GCM Helper Library from Google](http://code.google.com/p/gcm/source/browse/), and then add **/gcm-client/dist/gcm.jar** file into your project.
