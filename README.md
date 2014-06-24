@@ -41,18 +41,16 @@ To add SDK into your android project, please follow the instructions below:
 
 1) Copy **AdFresca.jar** and **adfresca_attr.xml** to **lib** and **res/values** repectively.
 
-  <img src="https://adfresca.zendesk.com/attachments/token/bja88u9zake4knm/?name=add_adfresca_jar_and_attr_xml.png" width="300"/>
+<img src="https://adfresca.zendesk.com/attachments/token/bja88u9zake4knm/?name=add_adfresca_jar_and_attr_xml.png" width="300"/>
 
 2) Update build path of your project.
+- Right-click on your project and click **Properties**.
+- Select **Java Build Path** and **Libraries** tab.
+- Click **Add JARs** and select **lib/AdFresca.jar**.
 
-  - Right-click on your project and click **Properties**.
-  - Select **Java Build Path** and **Libraries** tab.
-  - Click **Add JARs** and select **lib/AdFresca.jar**.
-
-  <img src="https://adfresca.zendesk.com/attachments/token/ogcnzf3kmyzbcvg/?name=add_jar.png" width="600" />
+<img src="https://adfresca.zendesk.com/attachments/token/ogcnzf3kmyzbcvg/?name=add_jar.png" width="600" />
 
 3) Modify **AndroidManifest.xml**
-
   ```xml
   <manifest package="your.app.package">
     <application>
