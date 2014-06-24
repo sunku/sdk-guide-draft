@@ -202,7 +202,7 @@ Before you start, you need to have your GCM project number from Google API Conso
 ```
 
 - If you already have your own GCMReceiver and GCMIntentService classes, you only need to put some SDK codes in your own GCMIntentService class.
-- If you haven't implemented any GCM classes yet, you will need to write your own GCM classes in java code. Please use our 'Android Plugin Project' in our unity plugin folder. After imporitng the sample project in Eclipse ADT, you will need to rename packages in **/src** and **/gen** to your own package name. Also make sure you need to rename 'YOUR.PACKAGE.NAME' in AndroidManifest.xml above.
+- If you haven't implemented any GCM classes yet, you will need to write your own GCM classes in java code. Please use our 'Android Plugin Project' in our unity plugin folder. After importing the sample project in Eclipse ADT, you will need to rename packages in **/src** and **/gen** to your own package name. Also make sure you need to rename 'YOUR.PACKAGE.NAME' in AndroidManifest.xml above.
 
 2) Implement CustomGCMIntentService
 
@@ -447,7 +447,6 @@ WithReceipt(string, string, string) | Set the receipt property of purchase objec
 
 When users purchased your virtual item in the app, you can also create Purchase object and call LogPurchase() method.
 
-적용 예제: 
 ```cs
 AdFresca.Purchase purchase = new AdFresca.PurchaseBuilder(AdFresca.Purchase.Type.VIRTUAL_ITEM)
   .WithItemId("long_sword")
@@ -459,7 +458,7 @@ AdFresca.Plugin plugin = AdFresca.Plugin.Instance;
 plugin.LogPurchase(purchase);
 ```
 
-For more details of AFPurchase object with the virtual item, check the table below.
+For more details of Purchase object with the virtual item, check the table below.
 
 Method | Description
 ------------ | ------------- | ------------
@@ -482,12 +481,7 @@ When you set 'Reward Item' section of the announcement campaign or 'Inventive it
 
 Implementing reward item codes, you can check if your user has any reward to receive, and then will be noticed with an reward item info.
 
-이제 구현을 위해서 아래 코드를 사용합니다.
-- CheckRewardItems(): 현재 지급 가능한 보상 아이템이 있는지 검사합니다. 사용자가 앱을 실행할 호출하는 것을 권장합니다.
-- SetAndroidRewardItemListener(): 아이템 지급 조건이 만족되면 onReward 이벤트가 발생하도록 설정할 수 있습니다. 이벤트를 발생시킬 게임 오브젝트와 이벤트 메소드 이름을 지정합니다. Android에 한해서 제공되며 iOS의 경우 아래와 같이 AFRewardItemDelegate를 네이티브 상에서 구현하여 유니티로 이벤트를 넘겨줍니다.
-
 To implement codes, we use two codes below:
-
 - CheckRewardItems(): this method is to check if any item is available to receive. we recommend to put this code when app becomes active. 
 - SetAndroidRewardItemListener(): when the reward condition is completed with current user, onReward event is automatically called with an item value from Android SDK. For iOS, you will need some work as follows in Xcode. Then you can give an item to the user with RewardItem object.
 
