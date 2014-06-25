@@ -80,7 +80,7 @@ startSession() 메소드를 적용하면 앱이 최초로 실행되거나, 백�
 
 ### In-App Messaging
 
-인-앱 메시징 기능을 이용하여, 사용자에게 원하는 메시지를 실시간으로 전달할 수 있습니다. 메시지를 전달하고자 하는 시점에 load(), show() 메소드만을 호출하여 적용이 가능합니다. 메시지는 전면 interstitial 이미지, 텍스트, 혹은 iframe 웹페이지 형태로 게임 화면에 표시될 수 있습니다. 메시지는 현재 게임을 플레이 중인 사용자가 인-앱 메시징 캠페인의 조건과 매칭된 경우에만 화면에 표시됩니다. 조건에 만족하는 캠페인이 없다면 사용자는 아무런 화면을 보지 않고 자연스럽게 플레이를 이어갑니다. 매칭과 관련한 인-앱 메시징의 다이나믹 타겟팅 기능은 아래의 [Dynamic Targeting](#dynamic-targeting) 항목에서 보다 자세히 설명하고 있습니다.
+인-앱 메시징 기능을 이용하여, 사용자에게 원하는 메시지를 실시간으로 전달할 수 있습니다. 메시지를 전달하고자 하는 시점에 load(), show() 메소드만을 호출하여 적용이 가능합니다. 메시지는 전면 interstitial 이미지, 텍스트, 혹은 iframe 웹페이지 형태로 화면에 표시될 수 있습니다. 메시지는 현재 플레이 중인 사용자가 인-앱 메시징 캠페인의 조건과 매칭된 경우에만 화면에 표시됩니다. 조건에 만족하는 캠페인이 없다면 사용자는 아무런 화면을 보지 않고 자연스럽게 플레이를 이어갑니다. 매칭과 관련한 인-앱 메시징의 다이나믹 타겟팅 기능은 아래의 [Dynamic Targeting](#dynamic-targeting) 항목에서 보다 자세히 설명하고 있습니다.
 
 ```objective-c
 - (void)applicationDidBecomeActive:(UIApplication *)application {
@@ -98,14 +98,14 @@ startSession() 메소드를 적용하면 앱이 최초로 실행되거나, 백�
 
 ### Push Messaging
 
-푸시 메시징 기능을 이용하여 사용자가 게임을 플레이하지 않을 때에도 언제든 메시지를 전달할 수 있습니다. 아래의 과정을 통하여 푸시 메시징 기능을 적용합니다.
+푸시 메시징 기능을 이용하여 사용자가 앱을 실행하지 않을 때에도 언제든 메시지를 전달할 수 있습니다. 아래의 과정을 통하여 푸시 메시징 기능을 적용합니다.
 
 1) APNS 인증서 파일(.p12)을 Dashboard에 등록하기
   - Keychain 툴을 이용하여 .cer 인증서 파일을 .p12로 변환하고 [Dashboard](https://admin.adfresca.com) 사이트에 등록합니다.
   - 보다 자세한 설명은 [iOS Push Notification 인증서 설정 및 적용하기](https://adfresca.zendesk.com/entries/21714780) 가이드를 통하여 확인이 가능합니다.
 
 2) Info.plast 확인하기 / Provision 확인하기
-- AD fresca는 APNS의 Production 환경만을 지원합니다. 때문에 게임 빌드가 production으로 빌드되어야 정상적인 서비스 이용이 가능합니다.
+- AD fresca는 APNS의 Production 환경만을 지원합니다. 때문에 빌드가 production으로 빌드되어야 정상적인 서비스 이용이 가능합니다.
 - Info.plst 파일의 'aps-environment' 값을 'production' 으로 설정되어 있어야 합니다.
 - App Store / Ad Hoc release에 사용하는 Provision 인증서를 사용하여 빌드되어야 합니다.
 

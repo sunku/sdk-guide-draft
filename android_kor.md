@@ -97,7 +97,7 @@ protected void onCreate(Bundle savedInstanceState) {
 
 ### In-App Messaging
 
-인-앱 메시징 기능을 이용하여, 사용자에게 원하는 메시지를 실시간으로 전달할 수 있습니다. 메시지를 전달하고자 하는 시점에 load(), show() 메소드만을 호출하여 적용이 가능합니다. 메시지는 전면 interstitial 이미지, 텍스트, 혹은 iframe 웹페이지 형태로 게임 화면에 표시될 수 있습니다. 메시지는 현재 게임을 플레이 중인 사용자가 인-앱 메시징 캠페인의 조건과 매칭된 경우에만 화면에 표시됩니다. 조건에 만족하는 캠페인이 없다면 사용자는 아무런 화면을 보지 않고 자연스럽게 플레이를 이어갑니다. 매칭과 관련한 인-앱 메시징의 다이나믹 타겟팅 기능은 아래의 [Dynamic Targeting](#dynamic-targeting) 항목에서 보다 자세히 설명하고 있습니다.
+인-앱 메시징 기능을 이용하여, 사용자에게 원하는 메시지를 실시간으로 전달할 수 있습니다. 메시지를 전달하고자 하는 시점에 load(), show() 메소드만을 호출하여 적용이 가능합니다. 메시지는 전면 interstitial 이미지, 텍스트, 혹은 iframe 웹페이지 형태로 화면에 표시될 수 있습니다. 메시지는 현재 플레이 중인 사용자가 인-앱 메시징 캠페인의 조건과 매칭된 경우에만 화면에 표시됩니다. 조건에 만족하는 캠페인이 없다면 사용자는 아무런 화면을 보지 않고 자연스럽게 플레이를 이어갑니다. 매칭과 관련한 인-앱 메시징의 다이나믹 타겟팅 기능은 아래의 [Dynamic Targeting](#dynamic-targeting) 항목에서 보다 자세히 설명하고 있습니다.
 
 ```java
 protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +117,7 @@ protected void onCreate(Bundle savedInstanceState) {
 
 ### Push Messaging
 
-푸시 메시징 기능을 이용하여 사용자가 게임을 플레이하지 않을 때에도 언제든 메시지를 전달할 수 있습니다. 아래의 과정을 통하여 푸시 메시징 기능을 적용합니다.
+푸시 메시징 기능을 이용하여 사용자가 앱을 실행하지 않을 때에도 언제든 메시지를 전달할 수 있습니다. 아래의 과정을 통하여 푸시 메시징 기능을 적용합니다.
 
 SDK를 적용하기 이전에 [Google API Console](https://cloud.google.com/console) 사이트에서 프로젝트를 생성하고, [Dashboard](https://admin.adfresca.com) 사이트에 설정할 GCM API Key 및 SDK 적용에 필요한 GCM_SENDER_ID (Project Number) 값을 얻어야 합니다.
 
@@ -421,6 +421,8 @@ SDK 적용을 위해서는 Dashboard에서 지정된 각 커스텀 파라미터�
 
 Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며, *setCustomParameterValue** 메소드를 사용하여 각 인덱스 값에 맞게 상태 값을 설정합니다.
 
+앱이 실행되는 시점에 한 번 값을 설정하고, 이후에는 값이 새로 갱신되는 이벤트마다 새로운 값을 설정합니다.
+
 ```java
   public void onCreate() {
     AdFresca fresca = AdFresca.getInstance(this);     
@@ -442,32 +444,7 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
   }
 ```
 
-**주의**_ setCustomParameterValue() 메소드는 startSession(), load() 메소드 이전에 호출이 되어야 합니다. 특히 startSession() 이전에는 반드시 모든 커스텀 파리미터 값들을 설정하고, 이후 변경되는 값들에 한하여 각 위치에 커스텀 파라미터를 설정합니다.
-
-만약 불가피하게 startSession() 호출 전에 커스텀 파라미터 값을 설정할 수 없는 경우, 앱을 최초로 실행한 사용자의 프로파일은 업데이트되지 않으며 해당 사용자의 2회째 앱 실행부터 SDK가 로컬에 캐싱해둔 값이 전달됩니다. 최초로 실행된 사용자의 프로파일까지 통계 및 타겟팅하기 위해서는 아래와 같이 초기 값 설정을 진행합니다. 또한, 사용자의 로그인 이벤트 이후 모든 커스텀 파라미터의 값을 설정할 수 있도록 구현합니다.
-
-```java
-  public void onCreate() {
-    AdFresca fresca = AdFresca.getInstance(this);     
-    if (isFirstRun) {
-      fresca.setCustomParameterValue(CUSTOM_PARAM_INDEX_LEVEL, defaultLevel);
-      fresca.setCustomParameterValue(CUSTOM_PARAM_INDEX_STAGE, defaultStage);
-      fresca.setCustomParameterValue(CUSTOM_PARAM_INDEX_HAS_FB_ACCOUNT, defaultFacebookFlag);
-    }    
-    fresca.startSession();
-  }
-  
-  .....
-  
-  public void onUserSignedIn() {
-    AdFresca fresca = AdFresca.getInstance(this);     
-    fresca.setCustomParameterValue(CUSTOM_PARAM_INDEX_LEVEL, User.level);
-    fresca.setCustomParameterValue(CUSTOM_PARAM_INDEX_AGE, User.age);
-    fresca.setCustomParameterValue(CUSTOM_PARAM_INDEX_HAS_FB_ACCOUNT, User.hasFacebookAccount);
-  }
-```
-
-(Advanced) SDK는 현재 설정한 Custom Parameter 값을 로컬에 저장하여 두고 있습니다. 특정 이슈가 발생하여 해당 값을 확인 및 초기화 시키고 싶은 경우 getCustomParameterValue(index), resetCustomParameterValues() 메소드를 사용할 수 있습니다.
+특정 커스텀 파라미터의 경우, 사용자의 로그인 작업 이후 설정이 가능할 수 있습니다. 해당 경우는 사용자의 로그인 이후에 필요한 커스텀 파라미터를 모두 설정할 수 있도록 합니다.
 
 * * *
 
