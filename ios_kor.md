@@ -519,7 +519,7 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
 {
   "your_auth_data": {},
 
-  "your_result": {},
+  "your_result_data": {},
 
   "nudge_data": {
     "custom_parameters": {
