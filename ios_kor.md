@@ -513,7 +513,7 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
 
 클라이언트에서 '로그인', '게임 클리어', '친구 추가' 등의 이벤트가 발생하여 서버에 요청을 보내면 서버에서 변경되는 커스터머 파라미터값을 설정하여 클라이언트에 결과 값을 내려줍니다. 클라이언트에서는 응답 받은 JSON Response를 SDK에 설정하여 커스텀 파라미터값이 자동으로 설정될 수 있도록 합니다. 이 방법을 이용하여 클라이언트는 단 1줄의 코드만으로 커스텀 파라미터 적용 작업을 완료할 수 있습니다.
 
-서버에서 응답을 내려줄 때 아래와 같이 'nudge_data' 항목을 추가하고 'custom_params' 안에 변경된 커스텀 파라미터값들을 입력합니다.
+서버에서 응답을 내려줄 때 아래와 같이 'nudge_data' 항목을 추가하고 'custom_parameters' 안에 변경된 커스텀 파라미터값들을 입력합니다. integer, boolean 타입을 지원하며 문자열 형태로 "+1" 값을 지정하면 기존 값에서 1씩 증가시키도록 합니다.
 
 ```json
 {
@@ -521,8 +521,8 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
 
   "your_result": {},
 
-  "nudge_data" {
-    "custom_params" {
+  "nudge_data": {
+    "custom_parameters": {
       "level": 10,
       "stage": 34,
       "facebook_flag": true,
@@ -544,8 +544,6 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
 
 @end
 ```
-
-서버에서 JSON 포맷을 이용하지 않는다면, 같은 구조의 NSDictionary
 
 * * *
 
