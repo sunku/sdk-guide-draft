@@ -1,21 +1,23 @@
 ## Contents
 - [Basic Integration](#basic-integration)
-    - [Installation](#installation)
-    - [Start Session](#start-session)
-    - [In-App Messaging](#in-app-messaging)
-    - [Push Messaging](#push-messaging)
-    - [Test Device Registration](#test-device-registration)
-- [IAP & Reward](#iap--reward)
-  - [In-App Purchase Tracking (Beta)](#in-app-purchase-tracking-beta)
+  - [Installation](#installation)
+  - [Start Session](#start-session)
+  - [In-App Messaging](#in-app-messaging)
+  - [Push Messaging](#push-messaging)
+  - [Test Device Registration](#test-device-registration)
+- [IAP, Reward and Sales Promotion](#iap-reward-and-sales-promotion)
+  - [In-App Purchase Tracking](#in-app-purchase-tracking)
   - [Give Reward](#give-reward)
+  - [Sales Promotion](#sales-promotion)
 - [Dynamic Targeting](#dynamic-targeting)
   - [Custom Parameter](#custom-parameter)
+  - [Stickiness Custom Parameter](#stickiness-custom-parameter)
   - [Marketing Moment](#marketing-moment)
 - [Advanced](#advanced)
   - [AdFrescaViewDelegate](#adfrescaviewdelegate) 
   - [Timeout Interval](#timeout-interval) 
 - [Reference](#reference)
-  - [Custom URL Schema](#custom-url-schema)
+  - [Deep Link](#deep-link)
   - [Cross Promotion Configuration](#cross-promotion-configuration)
   - [IFV Only Option](#ifv-only-option)
 - [Troubleshooting](#troubleshooting)
@@ -29,7 +31,7 @@
 
 아래 링크를 통해 SDK 파일을 다운로드 합니다.
 
-[iOS SDK Download](http://file.adfresca.com/distribution/sdk-for-iOS.zip) (v1.4.1)
+[iOS SDK Download](http://file.adfresca.com/distribution/sdk-for-iOS.zip) 
 
 SDK를 프로젝트에 추가하기 위해 아래의 절차가 필요합니다.
 
@@ -41,7 +43,7 @@ SDK를 프로젝트에 추가하기 위해 아래의 절차가 필요합니다.
   
   <img src="https://adfresca.zendesk.com/attachments/token/rny0s0zm3modful/?name=2Untitled.png" width="600" />
   
-  - AdSupport.framework를 추가할 경우, SDK는 [IFA(Identifier For Advertisers)](https://developer.apple.com/library/ios/documentation/AdSupport/Reference/ASIdentifierManager_Ref/ASIdentifierManager.html#jumpTo_3) 값을 수집하여 디바이스(=앱 사용자) 구분에 사용합니다. AD fresca SDK는 IFA 값을 사용하여 크로스 프로모션 캠페인 기능을 제공하고 캠페인 노출 이후 사용자의 앱 설치 및 액션 트랙킹을 위해 사용하고 있습니다. 
+  - AdSupport.framework를 추가할 경우, SDK는 [IFA(Identifier For Advertisers)](https://developer.apple.com/library/ios/documentation/AdSupport/Reference/ASIdentifierManager_Ref/ASIdentifierManager.html#jumpTo_3) 값을 수집하여 디바이스(=앱 사용자) 구분에 사용합니다. Nudge SDK는 IFA 값을 사용하여 크로스 프로모션 캠페인 기능을 제공하고 캠페인 노출 이후 사용자의 앱 설치 및 액션 트랙킹을 위해 사용하고 있습니다. 
   - AdSupport.framework를 제외할 경우, [IFV(Identifier For Vendor)](https://developer.apple.com/library/ios/documentation/uikit/reference/UIDevice_Class/Reference/UIDevice.html#jumpTo_7) 값을 사용합니다. 이 경우 크로스 프로모션 캠페인 기능을 이용할 수 없으며 IFV의 특성상 사용자가 앱을 삭제하고 재설치할 때 새로운 디바이스(=앱 사용자)로 인식될 수 있습니다. 
 
   만약, 앱 업데이트 과정에서 AdSupport.framework를 제외하거나 새로 추가하는 경우 [IFV Only Option](#ifv-only-option) 항목의 내용을 참고하여 주시기 바랍니다.
@@ -105,7 +107,7 @@ startSession() 메소드를 적용하면 앱이 최초로 실행되거나, 백�
   - 보다 자세한 설명은 [iOS Push Notification 인증서 설정 및 적용하기](https://adfresca.zendesk.com/entries/21714780) 가이드를 통하여 확인이 가능합니다.
 
 2) Info.plast 확인하기 / Provision 확인하기
-- AD fresca는 APNS의 Production 환경만을 지원합니다. 때문에 빌드가 production으로 빌드되어야 정상적인 서비스 이용이 가능합니다.
+- Nudge는 APNS의 Production 환경만을 지원합니다. 때문에 빌드가 production으로 빌드되어야 정상적인 서비스 이용이 가능합니다.
 - Info.plst 파일의 'aps-environment' 값을 'production' 으로 설정되어 있어야 합니다.
 - App Store / Ad Hoc release에 사용하는 Provision 인증서를 사용하여 빌드되어야 합니다.
 
@@ -116,16 +118,28 @@ startSession() 메소드를 적용하면 앱이 최초로 실행되거나, 백�
 
   - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     ....
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound];  
-  } 
+    if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+      UIUserNotificationType types = (UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound);
+      UIUserNotificationSettings *notificationSettings = [UIUserNotificationSettings settingsForTypes:types categories:nil];
+      [application registerUserNotificationSettings:notificationSettings];
+      [application registerForRemoteNotifications];
+    } else {
+      [application registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
+    }
 
+    NSDictionary* userInfo = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+	if (userInfo != nil) {
+	  [self application:application didReceiveRemoteNotification:userInfo];
+	}
+  } 
+  
   - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     // Register user's push device token to our SDK
     [AdFrescaView registerDeviceToken:deviceToken];
   }
 
   - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    /// Check a push notification is form AD fresca. Also, ignore a notification received when app is already running 
+    /// Check a push notification is form Nudge. Also, ignore a notification received when app is already running 
     if ([AdFrescaView isFrescaNotification:userInfo] && [application applicationState] != UIApplicationStateActive) {
       [AdFrescaView handlePushNotification:userInfo];
     }  
@@ -134,7 +148,7 @@ startSession() 메소드를 적용하면 앱이 최초로 실행되거나, 백�
 
 ### Test Device Registration
 
-AD fresca는 테스트 모드 기능을 지원하여 테스트를 원하는 디바이스에만 원하는 메시지를 전달할 수 있습니다. 이로 인해 SDK가 적용된 앱이 이미 앱스토어에 출시된 경우, 게임 운영팀 혹은 개발팀에게만 새로운 메시지를 전달하여 테스트할 수 있도록 지원합니다.
+Nudge는 테스트 모드 기능을 지원하여 테스트를 원하는 디바이스에만 원하는 메시지를 전달할 수 있습니다. 이로 인해 SDK가 적용된 앱이 이미 앱스토어에 출시된 경우, 게임 운영팀 혹은 개발팀에게만 새로운 메시지를 전달하여 테스트할 수 있도록 지원합니다.
 
 테스트 기기 등록을 위한 아이디 값은 SDK를 통해 추출이 가능하며 2가지 방법을 지원 합니다.
  
@@ -143,7 +157,7 @@ AD fresca는 테스트 모드 기능을 지원하여 테스트를 원하는 디�
 
   ```objective-c
   AdFrescaView *fresca = [AdFrescaView sharedAdView];
-  NSLog(@"AD fresca Test Device ID = %@", fresca.testDeviceId); 
+  NSLog(@"Nudge Test Device ID = %@", fresca.testDeviceId); 
   [fresca load];
   [fresca show];
 ```
@@ -164,16 +178,16 @@ AD fresca는 테스트 모드 기능을 지원하여 테스트를 원하는 디�
 
 * * *
 
-## IAP & Reward
+## IAP, Reward and Sales Promotion
 
-### In-App Purchase Tracking (Beta)
+### In-App Purchase Tracking
 
 _In-App-Purchase Tracking_ 기능을 통하여 현재 앱에서 발생하고 있는 모든 인-앱 결제를 분석하고 캠페인 타겟팅에 이용할 수 있습니다.
 
-AD fresca의 In-App-Purchase Tracking은 2가지 유형이 있습니다.
+Nudge의 In-App-Purchase Tracking은 2가지 유형이 있습니다.
 
-1. 실제 화폐를 통해 결제되는 Actual Item Purchase Tracking (예: USD $1.99를 결제하여 Gold 100개 아이템을 구입)
-2. 가상 화폐를 통해 결제되는 Virtual Item Purchase Tracking (예: Gold 10개를 이용하여 포션 아이템을 구입)
+1. 실제 화폐를 통해 결제되는 Hard Currency Item Purchase Tracking (예: USD $1.99를 결제하여 Gold 100개 아이템을 구입)
+2. 가상 화폐를 통해 결제되는 Soft Currency Item Purchase Tracking (예: Gold 10개를 이용하여 포션 아이템을 구입)
 
 위 2가지 유형의 데이터를 모두 Tracking 함으로써 앱의 매출뿐만 아니라 인-앱 사용자들의 아이템 구매 추이 분석까지 가능합니다.
 
@@ -181,9 +195,9 @@ AD fresca의 In-App-Purchase Tracking은 2가지 유형이 있습니다.
 
 아래의 적용 예제를 참고하여 간단히 In-App-Purchase Tracking 기능을 적용합니다.
 
-#### Actual Item Tracking
+#### Hard Currency Item Tracking
 
-Actual Item의 결제는 각 앱스토어별 인-앱 결제 라이브러리를 통해 이루어집니다. iOS의 경우 Storekit 결제 라이브러리에서 _'결제 성공'_ 이벤트가 발생 할 시에 AFPurchase 객체를 생성하고 logPurchase(purchase) 메소드를 호출합니다.
+Hard Currency Item의 결제는 각 앱스토어별 인-앱 결제 라이브러리를 통해 이루어집니다. iOS의 경우 Storekit 결제 라이브러리에서 _'결제 성공'_ 이벤트가 발생 할 시에 AFPurchase 객체를 생성하고 logPurchase(purchase) 메소드를 호출합니다. 그리고 _'결제 실패'_ 이벤트가 발생 할 시에는 cancelPromotionPurchase() 메소드를 호출합니다.
 
 적용 예제: 
 ```objective-c
@@ -198,7 +212,7 @@ Actual Item의 결제는 각 앱스토어별 인-앱 결제 라이브러리를 �
   NSDate *transactionDate = transaction.transactionDate;
   NSData *transactionReceiptData = transaction.transactionReceipt;
 
-  AFPurchase *purchase = [AFPurchase buildPurhcaseWithType:AFPurchaseTypeActualItem
+  AFPurchase *purchase = [AFPurchase buildPurhcaseWithType:AFPurchaseTypeHardItem
                                                     itemId:itemId
                                               currencyCode:currencyCode
                                                      price:[price doubleValue]
@@ -208,26 +222,33 @@ Actual Item의 결제는 각 앱스토어별 인-앱 결제 라이브러리를 �
   [[AdFrescaView shardAdView] logPurchase:purchase];
   ......
 }
+
+- (void)failedTransaction:(SKPaymentTransaction *)transaction 
+{
+  [[AdFrescaView shardAdView] cancelPromotionPurchase];
+  ....
+}
 ```
 
-Actual Item을 위한 AFPurchase 객체 생성의 보다 자세한 설명은 아래와 같습니다.
+Hard Currency Item을 위한 AFPurchase 객체 생성의 보다 자세한 설명은 아래와 같습니다.
 
 Method | Description
 ------------ | ------------- | ------------
-itemId(string) | 결제한 아이템의 고유 식별 아이디를 설정합니다. 등록된 앱스토어에 상관 없이 앱내에서 고유한 식별 값을 이용하는 것을 권장합니다. AD fresca 대쉬보드에서 해당 값을 기준으로 아이템 목록이 생성됩니다. 
+itemId(string) | 결제한 아이템의 고유 식별 아이디를 설정합니다. 등록된 앱스토어에 상관 없이 앱내에서 고유한 식별 값을 이용하는 것을 권장합니다. Nudge 대쉬보드에서 해당 값을 기준으로 아이템 목록이 생성됩니다. 
 currencyCode(string) | ISO 4217 표준 코드를 설정합니다. SKProduct 객체의 값을 이용하거나, 자체 백엔드 서버에서 가격을 내려받아 설정할 수 있습니다. 
 price(double) | 아이템의 가격을 설정합니다. SKProduct 객체의 값을 이용하거나, 자체 백엔드 서버에서 가격을 내려받아 설정할 수 있습니다. 
-purchaseDate(date) | 결제된 시간을 NSDate 객체 형태로 설정합니다. 값이 설정되지 않은 경우 AD fresca 서비스에 기록되는 시간이 결제 시간으로 자동 설정됩니다.
+purchaseDate(date) | 결제된 시간을 NSDate 객체 형태로 설정합니다. 값이 설정되지 않은 경우 Nudge 서비스에 기록되는 시간이 결제 시간으로 자동 설정됩니다.
 transactionReceiptData(nsdata| SKPaymentTransaction 객체의 transactionReceipt 값을 지정합니다. 추후 Receipt Verficiation 기능을 위해 필요한 데이터를 설정합니다. 
 
-#### Virtual Item Tracking
+#### Soft Currency Item Tracking
 
-Virtual Item의 결제는 앱 내의 가상 화폐로 아이템을 결제한 경우를 의미합니다. 앱 내에서 가상 화폐를 이용한 결제 이벤트가 성공한 경우 아래 예제와 같이 AFPurchase 객체를 생성하고 logPurchase(purchase) 메소드를 호출합니다.
+Soft Currency Item의 결제는 앱 내의 가상 화폐로 아이템을 결제한 경우를 의미합니다. 앱 내에서 가상 화폐를 이용한 결제 이벤트가 성공한 경우 아래 예제와 같이 AFPurchase 객체를 생성하고 logPurchase(purchase) 메소드를 호출합니다. 그리고 _'결제 실패'_ 이벤트가 발생 할 시에는 cancelPromotionPurchase() 메소드를 호출합니다.
+
 
 적용 예제: 
 ```objective-c
-- (void)didPurchaseVirtualItem {
-  AFPurchase *purchase = [AFPurchase buildPurhcaseWithType:AFPurchaseTypeVirtualItem
+- (void)didPurchaseSoftItem {
+  AFPurchase *purchase = [AFPurchase buildPurhcaseWithType:AFPurchaseTypeSoftItem
                                                     itemId:@"gun_001"
                                               currencyCode:@"gold"
                                                      price:100
@@ -236,21 +257,25 @@ Virtual Item의 결제는 앱 내의 가상 화폐로 아이템을 결제한 경
 
   [[AdFrescaView shardAdView] logPurchase:purchase];
 }
+
+- (void)didFailToPurchaseSoftItem {
+  [[AdFrescaView shardAdView] cancelPromotionPurchase];
+}
 ```
 
-Virtual Item을 위한 AFPurchase 객체 생성의 보다 자세한 설명은 아래와 같습니다.
+Soft Currency Item을 위한 AFPurchase 객체 생성의 보다 자세한 설명은 아래와 같습니다.
 
 Method | Description
 ------------ | ------------- | ------------
-itemId(string) | 결제한 아이템의 고유 식별 아이디를 설정합니다. 등록된 앱스토어에 상관 없이 앱내에서 고유한 식별 값을 이용하는 것을 권장합니다. AD fresca 대쉬보드에서 해당 값을 기준으로 아이템 목록이 생성됩니다. 
+itemId(string) | 결제한 아이템의 고유 식별 아이디를 설정합니다. 등록된 앱스토어에 상관 없이 앱내에서 고유한 식별 값을 이용하는 것을 권장합니다. Nudge 대쉬보드에서 해당 값을 기준으로 아이템 목록이 생성됩니다. 
 currencyCode(string) | 결제에 사용한 가상화폐 고유 코드를 설정합니다. (예: gold)
 price(double) | 가상 화폐로 결제한 가격 정보를 설정합니다. (예: gold 10개의 경우 10 값을 설정)
-purchaseDate(date) | 결제된 시간을 NSDate 객체 형태로 설정합니다. 값이 설정되지 않은 경우 AD fresca 서비스에 기록되는 시간이 결제 시간으로 자동 설정됩니다.
-transactionReceiptData(nsdata| Virtual 아이템의 경우는 값을 지정하지 않습니다.
+purchaseDate(date) | 결제된 시간을 NSDate 객체 형태로 설정합니다. 값이 설정되지 않은 경우 Nudge 서비스에 기록되는 시간이 결제 시간으로 자동 설정됩니다.
+transactionReceiptData(nsdata| Soft 아이템의 경우는 값을 지정하지 않습니다.
 
 #### IAP Trouble Shooting
 
-logPurchase() 메소드를 통해 기록된 AFPurchase 객체는 AD fresca 서비스에 업데이트되어 실시간으로 대쉬보드에 반영됩니다. 현재까지 등록된 아이템 리스트는 'Overview' 메뉴의 Settings - In App Items 페이지를 통해 확인할 수 있습니다.
+logPurchase() 메소드를 통해 기록된 AFPurchase 객체는 Nudge 서비스에 업데이트되어 실시간으로 대쉬보드에 반영됩니다. 현재까지 등록된 아이템 리스트는 'Overview' 메뉴의 Settings - In App Items 페이지를 통해 확인할 수 있습니다.
 
 만약 아이템 리스트가 새로 갱신되지 않는 경우, AFPurchaseDelegate를 구현하여 혹시 에러가 발생하고 있지 않은지 확인해야 합니다. 
 
@@ -264,8 +289,8 @@ logPurchase() 메소드를 통해 기록된 AFPurchase 객체는 AD fresca 서�
 }
 
 // AppDelegate.m
-- (void)didPurchaseVirtualItem {
-  AFPurchase *purchase = [AFPurchase buildPurhcaseWithType:AFPurchaseTypeVirtualItem
+- (void)didPurchaseSoftItem {
+  AFPurchase *purchase = [AFPurchase buildPurhcaseWithType:AFPurchaseTypeSoftItem
                                                itemId:@"gun_001"
                                               currencyCode:@"gold"
                                                      price:100
@@ -283,9 +308,9 @@ logPurchase() 메소드를 통해 기록된 AFPurchase 객체는 AD fresca 서�
 
 ### Give Reward
 
-Reward Item 기능을 적용하여 현재 사용자에게 지급 가능한 보상 아이템이 있는지 검사하고, 보상 아이템을 사용자에게 지급할 수 있습니다.
+Reward 지급 기능을 적용하여 현재 사용자에게 지급 가능한 보상 아이템이 있는지 검사하고, 보상 아이템을 사용자에게 지급할 수 있습니다.
 
-Annoucnement 캠페인의 'Reward Item' 항목을 설정했거나, Incentivized CPI & CPA 캠페인의 'Incentive Item' 을 설정한 경우 사용자에게 보상 아이템이 지급됩니다.
+Reward 캠페인에서 'Reward Item' 항목을 설정하거나, Incentivized CPI & CPA 캠페인의 'Incentive Item' 을 설정한 경우 사용자에게 보상 아이템이 지급됩니다.
 
 SDK 적용을 위해서는 아래 2가지 코드를 이용합니다.
 - checkRewardItems 메소드 호출: 현재 지급 가능한 보상 아이템이 있는지 검사합니다. 사용자가 앱을 실행할 호출하는 것을 권장합니다.
@@ -319,15 +344,86 @@ SDK 적용을 위해서는 아래 2가지 코드를 이용합니다.
 ```
 캠페인 종류에 따라 itemRewarded 이벤트의 발생 조건이 다릅니다.
 
-- Annoucnement 캠페인: 캠페인이 앱 사용자에게 매칭되어 노출될 때 이벤트가 발생합니다
+- Reward 캠페인: 캠페인이 앱 사용자에게 매칭되어 노출될 때 이벤트가 발생합니다
 - Incentivized CPI 캠페인: 사용자의 Advertising App 설치가 확인된 후 이벤트가 발생합니다.
 - Incentivized CPA 캠페인: 사용자의 Advertising App 설치가 확인되고 보상 조건으로 지정된 마케팅 이벤트가 호출된 후에 발생합니다.
 
 만일 디바이스의 네트워크 단절이 발생한 경우 SDK는 데이터를 로컬에 보관하여 다음 앱 실행에서 아이템 지급이 가능하도록 구현되어 있기 때문에 항상 100% 지급을 보장합니다.
 
-(기존의 getAvailableRewardItems 메소드는 Deprecated 상태로 변경되었지만, 호환성을 보장하여 정상적으로 동작하고 있습니다.)
+##### sendItemToUser() 메소드의 구현
+
+SDK에서 요청한 아이템을 사용자에게 지급해야 합니다. 클라이언트에서 직접 지급하거나, 백엔드 서버와 통신하여 사용자의 선물함으로 보상을 지급하는 방식을 이용할 수 있습니다. 아이팀의 고유 값, 수량, 그리고 시큐리티 토큰값을 이용하여 현재 로그인된 사용자에게 아이템을 지급합니다.
+
+##### 백엔드 서버를 통해 아이템을 지급할 경우 보안 이슈 해결하기
+
+저희 SDK에서는 특정 사용자가 동일한 캠페인에서 1회 이상 아이템이 지급되지 않도록 처리하고 있습니다. 하지만 클라이언트에서 백엔드 서버와 통신하는 과정이 노출된다면 외부 공격에 의해 아이템이 중복으로 지급되는 보안 이슈가 발생할 수도 있습니다. 해당 문제를 방지하기 위하여 시큐리티 토큰값을 제공하고 있습니다. 시큐리티 토큰값은 대쉬보드에서 캠페인 생성 시에 자동으로 생성 혹은 직접 지정할 수 있는 고유 값입니다. 해당 값을 이용하여 아래와 같은 처리를 할 수 있습니다.
+
+1. 백엔드 서버에서는 진행하려는 리워드 캠페인의 시큐리티 토큰값을 데이터베이스에 미리 보관하여, 존재하지 않는 토큰값이 포함된 요청을 거절합니다.
+2. 특정 사용자가 동일한 토큰값으로 1회 이상 지급 요청을 하는 경우 요청을 거절합니다. 
+3. 만약 토큰값이 외부에 노출되었다고 판단될 경우, 대쉬보드에서 토큰값을 새로 생성하거나 수정합니다.
+
 
 * * *
+
+### Sales Promotion
+
+Sales Promotion 캠페인을 이용하여 특정 아이템의 구매를 유도할 수 있습니다. 사용자가 캠페인에 노출된 이미지 메시지를 클릭할 경우 해당 아이템의 결제 UI가 표시됩니다. SDK는 사용자의 실제 결제 여부까지 자동으로 트랙킹하여 대쉬보드에서 실시간으로 통계를 제공합니다. 
+
+프로모션 기능을 적용하기 위해서 AFPromotionDelegate를 구현합니다. 프로모션 캠페인이 노출된 후 사용자가 이미지 메시지의 액션 영역을 탭하면 onPromotion() 이벤트가 발생합니다. 이벤트에 넘어오는 promotionPurchase 객체 정보를 이용하여 사용자에게 아이템 결제 UI를 표시하도록 코드를 적용합니다.
+
+Hard Currency 아이템의 경우 인-앱 결제 라이브러리를 이용하여 결제 UI를 표시합니다. promotionPurchase 객체의 ItemId 값이 아이템의 SKU 값에 해당됩니다. 아래의 예제는 구글 플레이의 결제 라이브러리 코드를 이용하고 있습니다.
+
+Soft Currency 아이템의 경우는 앱이 기존에 사용하고 있는 상점 내 아이템 결제 UI를 표시하도록 코드를 작성합니다. Soft Currency 프로모션의 경우는 2가지 가격 할인 옵션을 제공하고 있습니다. discountType 프로퍼티를 이용하여 할인 옵션을 확인할 수 있습니다.
+
+1. **Discount Price**: 캠페인에 직접 지정된 가격으로 아이템을 판매합니다. price 프로퍼티 값을 이용하여 가격 정보를 얻습니다.
+2. **Discount Rate**: 캠페인에 지정된 할인율을 적용하여 아이템을 판매합니다. discountRate 프로퍼티 값을 이용하여 할인율 정보를 받아옵니다.
+
+```objective-c
+// AppDelegate.h
+@interface AppDelegate : UIResponder <UIApplicationDelegate, AFPromotionDelegate> {
+
+}
+....
+
+// AppDelegate.m
+- (void)applicationDidBecomeActive:(UIApplication *)application 
+{
+  AdFrescaView *fresca = [AdFrescaView sharedAdView];
+  [fresca setPromotionDelegate:self];
+}
+
+- (void)onPromotion:(AFPurchase *)promotionPurchase {
+  NSString *itemId = promotionPurchase.itemId;
+  NSString *logMessage = @"onPromotion: no logMessage";
+  
+  if (promotionPurchase.type == AFPurchaseTypeHardItem) {
+    // Use SKPaymentQueue to show the purchase ui of this item.
+    SKProduct *product = [self paymentWithProductIdentifier:itemId];
+    SKPayment *payment = [SKPayment paymentWithProduct:product];
+    [[SKPaymentQueue defaultQueue] addPayment:payment];
+    
+    logMessage = [NSString stringWithFormat:@"on HARD_ITEM Promotion (%@)", itemId];
+    
+  } else if (promotionPurchase.type == AFPurchaseTypeSoftItem) {
+    NSString *currencyCode = promotionPurchase.currencyCode;
+    
+    if (promotionPurchase.discountType == AFDiscountTypePrice) {
+      // Use a discounted price
+      double discountedPrice = promotionPurchase.price;
+      [self showPurchaseUIWithItemId:itemId withDiscountedPrice:discountedPrice];
+      logMessage = [NSString stringWithFormat:@"on SOFT_ITEM Promotion (%@) with %.2f %@", itemId, discountedPrice, currencyCode];
+
+    } else if (promotionPurchase.discountType == AFDiscountTypeRate) {
+      // Use this rate to calculate a discounted price of item. discountedPrice = originalPrice - (originalPrice * discountRate)
+      double discountRate = promotionPurchase.discountRate;
+      [self showPurchaseUIWithItemId:itemId withDiscountRate:discountRate];
+      logMessage = [NSString stringWithFormat:@"on SOFT_ITEM Promotion (%@) with %.2f %%", itemId, discountRate * 100.0];
+    }
+    
+    NSLog(@"%@", logMessage);
+  }
+}
+```
 
 ## Dynamic Targeting
 
@@ -335,47 +431,125 @@ SDK 적용을 위해서는 아래 2가지 코드를 이용합니다.
 
 커스텀 파라미터는 캠페인 진행 시, 타겟팅을 위해 사용할 사용자의 상태 값을 의미합니다.
 
-AD fresca SDK는 기본적으로 '국가, 언어, 앱 버전, 실행 횟수 등'의 디바이스 고유 데이터를 수집하며, 동시에 각 앱 내에서 고유하게 사용되는 특수한 상태 값들(예: 캐릭터 레벨, 보유 포인트, 스테이지 등)을 커스텀 파라미터로 정의하고 수집하여 분석 및 타겟팅 기능을 제공합니다.
+Nudge SDK는 기본적으로 '국가, 언어, 앱 버전, 실행 횟수 등'의 디바이스 고유 데이터를 수집하며, 동시에 각 앱 내에서 고유하게 사용되는 특수한 상태 값들(예: 캐릭터 레벨, 현재 스테이지, 페이스북 연동 여부 등)을 커스텀 파라미터로 정의하고 수집하여 분석 및 타겟팅 기능을 제공합니다.
 
-커스텀 파라미터 설정은 [Dashboard](https://admin.adfresca.com) 사이트를 접속하여 앱의 Overview 메뉴 -> Settings - Custom Parameters 버튼을 클릭하여 확인할 수 있습니다.
+Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며, **setCustomParameterWithValue** 메소드를 사용하여 각 고유 키 값에 맞게 상태 값을 설정합니다.
 
-SDK 적용을 위해서는 Dashboard에서 지정된 각 커스텀 파라미터의 '인덱스' 값이 필요합니다. 인덱스 값은 1,2,3,4 와 같은 Integer 형태의 고유 값이며 소스코드에 Constant 형태로 지정하여 이용하는 것을 권장합니다.
-
-Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며, **setCustomParameterWithValue** 메소드를 사용하여 각 인덱스 값에 맞게 상태 값을 설정합니다.
-
-앱이 실행되는 시점에 한 번 값을 설정하고, 이후에는 값이 새로 갱신되는 이벤트마다 새로운 값을 설정합니다.
+앱이 실행되는 시점에 한 번 값을 설정하고, 이후에는 값이 새로 변경되는 이벤트마다 새로운 값을 설정합니다. (사용자의 로그인 이후 최초 설정이 가능한 값은 로그인 직후에 설정합니다.)
 
 ```objective-c
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions 
 {
   ...
   AdFrescaView *fresca = [AdFrescaView sharedAdView];
-  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:User.level] forIndex:CUSTOM_PARAM_INDEX_LEVEL];                    
-  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:User.stage] forIndex:CUSTOM_PARAM_INDEX_STAGE];
-  [fresca setCustomParameterWithValue:[NSNumber numberWithBool:User.hasFacebookAccount] forIndex:CUSTOM_PARAM_INDEX_FACEBOOK];   
+  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:User.level] forKey:@"level"];                    
+  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:User.stage] forKey:@"stage"];
+  [fresca setCustomParameterWithValue:[NSNumber numberWithBool:User.hasFacebookAccount] forKey:"facebook_flag"];   
 }
 
 - (void)levelDidChange:(int)level 
 {
   AdFrescaView *fresca = [AdFrescaView sharedAdView];   
-  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:level] forIndex:CUSTOM_PARAM_INDEX_LEVEL];
+  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:level] forKey:"level"];
 }   
 
 - (void)stageDidChange:(int)stage 
 {
   AdFrescaView *fresca = [AdFrescaView sharedAdView];   
-  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:stage] forIndex:CUSTOM_PARAM_INDEX_STAGE];
+  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:stage] forKey:"stage"];
 }
 ....
 ```
 
-특정 커스텀 파라미터의 경우, 사용자의 로그인 작업 이후 설정이 가능할 수 있습니다. 해당 경우는 사용자의 로그인 이후에 필요한 커스텀 파라미터를 모두 설정할 수 있도록 합니다.
+코드가 적용되었으면 [Dashboard](https://dashboard.nudge.do)에 접속하여 등록된 커스텀 파라미터 리스트를 확인하고 활성화('Activate')해야 합니다. 커스텀 파라미터 리스트는 Overview 메뉴 -> Settings - Custom Parameters 버튼을 클릭하여 확인할 수 있습니다.
+
+< 스크린샷 >
+
+각 커스텀 파라미터의 'Name' 값을 입력하고 'Activate' 버튼을 눌러 활성화할 수 있습니다. 최대 20개까지 가능하며 활성화된 이후부터 데이터 수집 및 타겟팅이 가능합니다.
+
+###
+
+* * *
+
+### Stickiness Custom Parameter
+
+(Stickiness 커스텀 파라미터 기능은 현재 베타 서비스로 제공되고 있습니다. 이용을 위해서는 [고객지원팀](mailto:support@nudge.do)으로 문의하여 주세요.)
+
+스테이지형 게임에서 게임 플레이 횟수와 같이 사용자의 Stickiness 지표를 측정할 수 있는 값이 있다면, Stickiness 커스텀 파라미터 등록하여 '최근 1주일간 30회 이상 플레이한 사용자', '오늘 5회 이상 플레이한 사용자'와 같은 사용자 세그먼트를 등록하고 관리할 수 있습니다.
+
+먼저 누적 플레이 횟수와 같은 값을 커스텀 파라미터로 등록하고 Stickiness 모드로 지정합니다. (현재 Stickiness 지정은 Nudge 팀을 통해서만 가능합니다.)
+
+코드 적용 시에는 해당 값이 증가하는 이벤트가 발생할 때 incrCustomParameterWithAmount 메소드를 이용하여 증가되는 값을 기록합니다. SDK는 자동으로 누적값을 계산함과 동시에 일별 증가 수치를 계산하여 해당 사용자의 프로화일을 업데이트합니다.
+
+이후 대쉬보드에서 '오늘의 플레이 횟수', '최근 1주일간의 플레이 횟수', '최근 1주일간의 평균 플레이 횟수'와 같은 조건을 사용자 세그먼트 정의에 이용할 수 있습니다.
+
+```objective-c
+- (void)didFinishGame
+{
+  AdFrescaView *fresca = [AdFrescaView sharedAdView];   
+  [fresca incrCustomParameterWithAmount:[NSNumber numberWithInt:1] forKey:"play_count"];
+}
+```
+
+만약 기존에 출시된 앱에서 새로 Stickiness Custom Parameter를 적용하는 경우, incrCustomParameterWithAmount 호출 이전에 기존의 누적값을 설정해두어야 합니다. **hasCustomParameterWithKey(key)** 메소드를 이용하여 기존에 설정된 값이 존재하는지 검사한 후 아직 설정된 값이 없다면 누적 값을 미리 설정합니다. (기존의 누적 값은 앱 서버를 통하여 받아옵니다.)
+
+```objective-c
+- (void)didUserSignIn 
+{
+  ....
+
+  AdFrescaView *fresca = [AdFrescaView sharedAdView];       
+  if (![fresca hasCustomParameterWithKey:"play_count"]) {
+    [fresca setCustomParameterWithValue:[NSNumber numberWithInt:user.totalPlaycount] forKey:"play_count"];
+  }
+}
+```
+
+* * *
+
+### Custom Parameter Update by Server JSON Response
+
+커스텀 파라미터에 사용할 값이 앱 클라이언트에 존재하지 않거나 값을 설정하는 작업이 힘든 경우, 앱 서버에서 대신 커스텀 파라미터를 설정할 수 있도록 하는 기능을 제공합니다. 클라이언트에서 '로그인', '게임 클리어', '친구 추가' 등의 이벤트가 발생하여 서버에 요청을 보내면 서버에서 변경되는 커스터머 파라미터값을 설정하여 클라이언트에 결과 값을 내려줍니다. 클라이언트에서는 응답 받은 JSON Response를 SDK에 설정하여 커스텀 파라미터값이 자동으로 설정될 수 있도록 합니다. 이 방법을 이용하여 클라이언트는 단 1줄의 코드만으로 커스텀 파라미터 적용 작업을 완료할 수 있습니다.
+
+서버에서 응답을 내려줄 때 아래와 같이 'nudge_data' 항목을 추가하고 'custom_params' 안에 변경된 커스텀 파라미터값들을 입력합니다.
+
+```json
+{
+  "your_auth_data": {},
+
+  "your_result": {},
+
+  "nudge_data" {
+    "custom_params" {
+      "level": 10,
+      "stage": 34,
+      "facebook_flag": true,
+      "play_count": "+1"
+    }
+  }
+}
+```
+
+클라이언트에서는 서버로부터 json을 내려 받는 코드에 **updateData(json_string)** 메소드를 적용합니다. SDK는 JSON을 파싱한 후 'nudge_data'에 해당 하는 항목만 필터링하여 커스텀 파라미터를 업데이트합니다. 만약 'nudge_data' 키가 존재하지 않는다면 아무런 작업도 하지 않습니다. 때문에 각 리퀘스트 별로 SDK 코드를 적용하는 것 보다는 모든 리퀘스트의 응답을 공통으로 처리하는 위치에 **updateData** 메소드를 한 번만 적용하길 권장합니다.
+
+```objective-c
+@implementation YourBaseRequest
+
+- (void)onResponse:(NSString *)responseJSON {
+  [[AdFrescaView sharedAdView] updateData:responseJSON];  
+  ....               
+}
+
+@end
+```
+
+서버에서 JSON 포맷을 이용하지 않는다면, 같은 구조의 NSDictionary
 
 * * *
 
 ### Marketing Moment
 
-마케팅 모멘트는 유저에게 메세지를 전달하고자 하는 상황을 의미합니다. (예: 캐릭터 레벨 업, 퀘스트 달성, 스토어 페이지 진입)
+마케팅 모멘트는 유저에게 메세지를 전달하고자 하는 상황을 의미합니다. (예: 메인 로비 입장, 상점 방문, 스테이지 완료 후)
 
 마케팅 모멘트 기능을 사용하여 지정된 상황에 알맞는 캠페인이 노출되도록 할 수 있습니다.
 
@@ -390,16 +564,35 @@ SDK 적용을 위해서는 Dashboard에서 지정된 각 마케팅 모멘트의 
 ```objective-c
 - (void)userDidEnterItemStore {
   AdFrescaView *fresca = [AdFrescaView sharedAdView];   
-  [fresca load:EVENT_INDEX_STORE_PAGE];    
+  [fresca load:MOMENT_INDEX_STORE_PAGE];    
   [fresca show];
 } 
 
-- (void)levelDidChange:(int)level {
+- (void)userDidCompleteStage:(int)nextStage
   AdFrescaView *fresca = [AdFrescaView sharedAdView];   
-  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:level] forIndex:CUSTOM_PARAM_INDEX_LEVEL]; 
-  [fresca load:EVENT_INDEX_LEVEL_UP]; 
+  [fresca setCustomParameterWithValue:[NSNumber numberWithInt:nextStage] forKey:"stage"]; 
+  [fresca load:MOMENT_INDEX_COMPLETE_STAGE]; 
   [fresca show];
+
+  ...
 }  
+```
+
+만약 JSON Response를 이용하여 커스텀 파라미터를 적용한 경우에는 서버에 요청한 응답이 도착한 후에 마케팅 모멘트를 호출합니다.
+
+```objective-c
+- (void)userDidCompleteStage 
+{
+  StageCompleteRequest *request = [[StageCompleteRequest alloc] init];
+  [request start:^(BOOL wasSuccessful) {
+    if (wasSuccessful) {
+      AdFrescaView *fresca = [AdFrescaView sharedAdView];   
+      [fresca load:MOMENT_INDEX_COMPLETE_STAGE]; 
+      [fresca show];
+    }
+  }];
+}
+....
 ```
 
 ## Advanced
@@ -495,9 +688,9 @@ fresca.timeoutInterval = 3 // # secs
 
 ## Reference
 
-### Custom URL Schema
+### Deep Link
 
-캠페인의 Click URL 설정 시에 Custom URL Schema를 지정할 수 있습니다.
+캠페인의 Deep Link 설정 시에 Custom URL Schema를 지정할 수 있습니다.
 
 이를 통해 사용자가 콘텐츠를 클릭할 경우, 자신이 원하는 특정 앱 페이지로 이동하는 등의 액션을 지정할 수 있습니다.
 
@@ -519,7 +712,7 @@ fresca.timeoutInterval = 3 // # secs
     return NO;
   }
 ```
-  위와  같이 구현한 경우, 캠페인의 Click URL을 'myapp://item' 으로 설정하여 전송하면, ItemViewController 페이지가 실행됩니다.
+  위와  같이 구현한 경우, 캠페인의 Deep Link를 'myapp://item' 으로 설정하여 전송하면, ItemViewController 페이지가 실행됩니다.
 
 * * *
 
@@ -534,31 +727,32 @@ Incentivized CPI & CPA 캠페인에 대한 보다 자세한 설명 및 [Dashboar
 
 SDK 적용을 위해서는 Advertising App에서의 URL Schema 설정 및 Media App에서의 Reward Item 지급 기능을 구현해야 합니다.
 
-#### Advertising App 설정하기:
+#### Advertising App 설정:
 
   iOS 플랫폼의 경우 URL Schema 값을 이용하여 광고를 노출한 앱이 실제로 디바이스에 설치되었는지 검사하게 됩니다. 따라서 Advertising App 앱의 URL Schema을 설정하고 CPI Identifier로 사용합니다.
 
-  (현재 Incentivized CPI 캠페인을 진행할 경우, Advertising App의 SDK 설치는 필수가 아니며 URL Schema 설정만 진행되면 됩니다. 하지만 Incentivized CPA 캠페인을 진행할 경우 반드시 SDK 설치 및 [Marketing Event](#marketing-event) 기능이 적용되어야 합니다.)
+  (현재 Incentivized CPI 캠페인을 진행할 경우, Advertising App의 SDK 설치는 필수가 아니며 URL Schema 설정만 진행되면 됩니다. 하지만 Incentivized CPA 캠페인을 진행할 경우 반드시 SDK 설치 및 [Marketing Moment](#marketing-moment) 기능이 적용되어야 합니다.)
 
-  Xcode 프로젝트의 Info.plst 파일을 열어 사용할 URL Schema 정보를 설정 합니다.
+  먼저 Xcode 프로젝트의 Info.plst 파일을 열어 사용할 URL Schema 정보를 확인합니다.
 
   <img src="https://adfresca.zendesk.com/attachments/token/n3nvdacyizyzvu0/?name=Screen+Shot+2013-02-07+at+6.51.09+PM.png"/>
 
-  위 경우 [Dashboard](https://admin.adfresca.com) 사이트에서 Advertising App의 CPI Identifier 값을 'myapp://' 으로 설정하게 됩니다. 
-  iOS 플랫폼의 경우 URL Schema 값이 다른 앱과 중복될 수 있습니다. 정상적인 캠페인 진행을 위해서는 최대한 Unique한 값을 선택해야 합니다.
+  위 경우 [Dashboard](https://admin.adfresca.com) 사이트에서 Advertising App의 CPI Identifier 값을 'myapp://' 으로 설정하게 됩니다.
+  
+  iOS 플랫폼의 경우 URL Schema 값이 다른 앱과 중복될 수 있습니다. 정상적인 캠페인 진행을 위해서는 고유한 값을 사용해야 합니다.
 
-  마지막으로, Incentivized CPA 캠페인을 진행할 경우는 보상 조건으로 지정한 마케팅 이벤트가 발생되어야 합니다. 사용자가 보상 조건을 완료한 이후 아래와 같이 지정한 마케팅 이벤트를 호출합니다.
-    
+  마지막으로, Incentivized CPA 캠페인을 진행할 경우는 보상 조건으로 지정한 마케팅 모멘트가 발생되어야 합니다. 사용자가 보상 조건을 완료한 이후 아래와 같이 지정한 마케팅 모벤트 코드를 실행합니다.
+  
   ```objective-c
-  // 튜토리얼 완료 이벤트를 보상 조건으로 지정한 경우
+  // 튜토리얼 완료 모멘트를 보상 조건으로 지정한 경우
   AdFrescaView *fresca = [AdFrescaView sharedAdView];   
-  [fresca load:EVENT_INDEX_TUTORIAL];     
+  [fresca load:MOMENT_INDEX_TUTORIAL];     
   [fresca show];
   ```
 
 #### Media App SDK 적용하기:
 
-  Media App에서 보상 지급 여부를 확인하고, 사용자에게 아이템을 지급하기 위해서는 SDK 가이드의 [Give Reward](#give-reward) 항목의 내용을 구현합니다.
+  Media App에서 보상 지급 여부를 확인하고, 사용자에게 아이템을 지급하기 위해서는 SDK 가이드의 [Give Reward](#give-reward) 항목이 적용되어 있어야 합니다. 앞서 리워드 지급 기능을 적용하지 않았다면, 가이드에 따라 기능을 적용합니다.
 
 * * *
 
@@ -569,7 +763,7 @@ SDK 적용을 위해서는 Advertising App에서의 URL Schema 설정 및 Media 
 만약 앱스토어 출시 이후 앱을 업데이트 하는 과정에서 AdSupport.framework를 제외시키거나, 추가하는 경우 아래와 같은 상황이 발생합니다.
 
 1. 기존에 사용하던 AdSupport.framework를 제외시키는 경우:
-  - AD fresca API 서버는 기존에 함께 수집한 IFV 값을 이용하여, 기존의 앱 사용자들이 새로운 사용자로 인식 되지 않도록 자동으로 처리합니다. 따라서 아무런 문제가 발생하지 않습니다. 단, iOS SDK 1.3.3 (2013년 11월 26일 출시) 이상의 버전이 탑재되었던 앱에 한해서만 처리됩니다.
+  - Nudge API 서버는 기존에 함께 수집한 IFV 값을 이용하여, 기존의 앱 사용자들이 새로운 사용자로 인식 되지 않도록 자동으로 처리합니다. 따라서 아무런 문제가 발생하지 않습니다. 단, iOS SDK 1.3.3 (2013년 11월 26일 출시) 이상의 버전이 탑재되었던 앱에 한해서만 처리됩니다.
 2. AdSupport.framework를 새로 추가하는 경우:
   - 이 경우는 SDK가 기존에 IFA 값을 수집하지 못하였기 때문에, 앱을 그대로 릴리즈하면 기존 사용자들이 모두 새로운 사용자로 인식되는 문제가 발생합니다. iOS SDK에서는 이 문제를 해결하기 위하여 **setUseIFVOnly** 메소드를 제공합니다. didFinishLaunchingWithOptions 이벤트에서 **setUseIFVOnly** 메소드에 'YES' 값을 설정하면 AdSupport.framework가 추가되었더라도 기존의 IFV 값을 가지고 디바이스를 구분하도록 합니다. 이로 인해 기존의 IFV 값을 이용하여 등록된 사용자들이 새로운 사용자로 인식되는 것을 방지할 수 있습니다.
 
@@ -607,21 +801,46 @@ SDK 설치시에 SBJson의 Duplicate Symbol 에러가 발생하여 빌드가 되
 
 ## Release Notes
 
-- **1.4.1 (2014/06/19 Updated)**
+- **v1.5.1 _(2014/12/22 Updated)_**
+  - hasCustomParameterWithIndex 메소드가 추가되었습니다.
+- 1.5.0
+  - [Stickiness Custom Parameter](#stickiness-custom-parameter)을 지원합니다.
+- v1.4.9
+  - AFPurchase 객체에 AFPurchaseTypeHardItem, AFPurchaseTypeSoftItem purchase type이 추가되고 AFPurchaseTypeActualItem, AFPurchaseTypeVirtualItem 값이 deprecated 되었습니다. 자세한 내용은 [In-App Purchase Tracking](#in-app-purchase-tracking) 항목을 참고하여 주세요.
+- v1.4.8
+  - 유니티 플러그인에서의 In-App Purchase Tracking 기능을 지원합니다.
+- v1.4.7
+  - 아이폰6 모델에서의 가로형 이미지 표시 문제를 해결하였습니다.
+- v1.4.6
+  - A/B 테스트 기능을 지원합니다. 해당 기능은 별도의 코딩 작업 없이 이용 가능합니다.
+- v1.4.5
+  - Nudge SDK는 iOS 8 버전에서 정상적으로 동작합니다. 최신 버전이 아닌 기존 버전들도 아무런 호환 이슈 없이 동작됩니다.
+  - iOS 8에서 푸시 연동을 위한 가이드 내용이 수정되었습니다. [Push Messaging](#push-messaging) 항목을 참고하여 푸시 서비스 사용 요청 코드를 수정합니다.
+  - Deep Link 관련한 마이너 버그가 수정되었습니다.
+- v1.4.4  
+  - 프로모션 기능 관련하여 마이너 버그가 수정되었습니다.
+- v1.4.3
+  - 세일즈 프로모션 캠페인 기능을 지원합니다. 자세한 내용은 [Sales Promotion](#sales-promotion) 항목을 참고하여 주세요.
+  - 리워드 지급 시에 시큐리티 토큰값을 이용하여 보안 이슈를 해결할 수 있습니다. 자세한 내용은 [Give Reward](#give-reward)   항목을 참고하여 주세요.
+  - [In-App Purchase Tracking](#in-app-purchase-tracking) 기능에서 cancelPromotionPurchase() 메소드가 추가되었습니다. 
+  - 이미지 메시지의 Tap Area 기능을 지원합니다.
+- v1.4.2
+	- 1개의 마케팅 모멘트에서 복 수 개의 캠페인이 매칭되어 표시가 가능하도록 변경되었습니다.
+- v1.4.1
   - Xcode의 64-bit 아키텍쳐 설정을 지원합니다.
-  - 1.4.0-beta에서 지원하는 [In-App Purchase Tracking (Beta)](#in-app-purchase-tracking-beta) 기능을 통합하여 제공합니다.
+  - 1.4.0에서 지원하는 [In-App Purchase Tracking](#in-app-purchase-tracking) 기능을 통합하여 제공합니다.
   - 몇몇 메소드의 이름이 변경되었습니다. (load -> load, show -> show, closeAd -> close) 기존에 제공하던 메소드도 호환성을 위하여 정상적으로 지원합니다.
-- 1.4.0-beta1
-  - 앱 내에서 발생하는 In-App Purchase 데이터를 트랙킹할 수 있는 기능이 추가되었습니다. 자세한 내용은 [In-App Purchase Tracking (Beta)](#in-app-purchase-tracking-beta) 항목을 참고하여 주세요. [In-App Purchase Tracking (Beta)](#in-app-purchase-tracking-beta) 항목을 참고하여 주세요.
+- 1.4.01
+  - 앱 내에서 발생하는 In-App Purchase 데이터를 트랙킹할 수 있는 기능이 추가되었습니다. 자세한 내용은 [In-App Purchase Tracking](#in-app-purchase-tracking) 항목을 참고하여 주세요. [In-App Purchase Tracking](#in-app-purchase-tracking) 항목을 참고하여 주세요.
 - v1.3.5
   - SDK 설치 과정에서 AdSupport framework 추가가 필수항목에서 제외됩니다. IFA 수집을 하지 않아도 SDK 이용이 가능하도록 수정되었습니다. 보다 자세한 내용은 [Installation](#installation) 항목을 참고하여 주세요.
-  - Announcement 캠페인을 통한 Reward Item 지급 기능을 지원합니다. 
+  - 인-앱 메시징 캠페인 캠페인을 통한 Reward Item 지급 기능을 지원합니다. 
   - Incentivized CPA 캠페인 기능을 지원합니다. 자세한 내용은 [CPI Identifier](#cpi-identifier) 항목을 참고하여 주세요.
   - AFRewardItemDelegate가 구현 기능이 추가되어, 지급 가능한 아이템이 발생할 시에 자동으로 itemRewarded 이벤트가 발생합니다. 보다 자세한 내용은 [Reward Item](#reward-item) 항목을 참고하여 주세요.
 - v1.3.4
   - testDeviceId property 값이 각 iOS  버전에 맞는 값으로 출력되도록 변경되었습니다. 
 - v1.3.3 
-  - APNS 디바이스 토큰이 새로 생성되거나 변경 시, SDK가 토큰 값을 실시간으로 AD fresca  서비스에 업데이트하도록 개선되었습니다. (기존에는 앱 실행 시에만 업데이트하였습니다.)
+  - APNS 디바이스 토큰이 새로 생성되거나 변경 시, SDK가 토큰 값을 실시간으로 Nudge  서비스에 업데이트하도록 개선되었습니다. (기존에는 앱 실행 시에만 업데이트하였습니다.)
 - v1.3.2 
   - 커스텀 파라미터 설정 시 'long long' 타입까지 확장하여 지원합니다.
 customParameterWithIndex 호출 시 설정된 값이 없는 경우 nil 값을 리턴하도록 변경되었습니다.
@@ -677,4 +896,4 @@ customParameterWithIndex 호출 시 설정된 값이 없는 경우 nil 값을 �
 - v0.9.1
   - UI가 개선 되었습니다.
 - v0.9.0
-  - AD fresca iOS SDK가 출시 되었습니다. 기본적인 콘텐츠 출력 기능이 포함 됩니다.
+  - Nudge iOS SDK가 출시 되었습니다. 기본적인 콘텐츠 출력 기능이 포함 됩니다.
