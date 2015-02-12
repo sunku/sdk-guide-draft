@@ -532,7 +532,7 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
 }
 ```
 
-클라이언트에서는 서버로부터 json을 내려 받는 코드에 **updateData(json_string)** 메소드를 적용합니다. SDK는 JSON을 파싱한 후 'nudge_data'에 해당 하는 항목만 필터링하여 커스텀 파라미터를 업데이트합니다. 만약 'nudge_data' 키가 존재하지 않는다면 아무런 작업도 하지 않습니다. 때문에 각 리퀘스트 별로 SDK 코드를 적용하는 것 보다는 모든 리퀘스트의 응답을 공통으로 처리하는 위치에 **updateData** 메소드를 한 번만 적용하길 권장합니다.
+클라이언트에서는 서버로부터 json을 내려 받는 코드에 **updateData(jsonString)** 메소드를 적용합니다. SDK는 JSON을 파싱한 후 'nudge_data'에 해당 하는 항목만 필터링하여 커스텀 파라미터를 업데이트합니다. 만약 'nudge_data' 키가 존재하지 않는다면 아무런 작업도 하지 않습니다. 때문에 각 리퀘스트 별로 SDK 코드를 적용하는 것 보다는 모든 리퀘스트의 응답을 공통으로 처리하는 위치에 **updateData** 메소드를 한 번만 적용하길 권장합니다.
 
 ```objective-c
 @implementation YourBaseRequest
