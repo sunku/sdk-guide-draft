@@ -507,7 +507,7 @@ Integer, Boolean 형태의 데이터를 상태 값으로 설정할 수 있으며
 
 * * *
 
-### Custom Parameter Update by Server JSON Response
+### Custom Parameter Update by JSON Response
 
 커스텀 파라미터에 사용할 값이 앱 클라이언트에 존재하지 않거나 값을 설정하는 작업이 힘든 경우, 앱 서버에서 대신 커스텀 파라미터를 설정할 수 있도록 하는 기능을 제공합니다. 
 
