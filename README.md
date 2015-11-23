@@ -31,8 +31,6 @@
 
 ## Basic Integration
 
-...
-
 ### Sign In & Sign Out
 
 You can track a user’s sign in or sign out actions using these Sign In and Sign Out functions. Nudge will use a string passed using signIn or signOut method as a user identifier and track users with multiple devices, which makes statistics more accurate and campaigns will recognize users, not devices so they will run more effectively. (Users will no longer claim the same rewards multiple times by using different devices.)
@@ -117,6 +115,3 @@ Stickiness custom parameter is a special custom parameter to measure a user’s 
 You must use **incrCustomParameterValue* method for stickiness custom parameters. If you want to use stickiness custom parameters, please send an email to support@nudge.do after you activate your custom parameter in your dashboard.
 
 * * *
-
-
-.....
